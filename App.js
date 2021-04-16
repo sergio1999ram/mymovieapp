@@ -13,7 +13,8 @@ const MainStackNavigator = createStackNavigator({
   },
   VideoPlayer: {
     screen: VideoPlayerScreen,
-  }
+  },
 });
+
 
 export default createAppContainer(MainStackNavigator);

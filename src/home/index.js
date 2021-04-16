@@ -1,9 +1,13 @@
-import { StyleSheet, View, FlatList, Text, Dimensions } from 'react-native';
+import { StyleSheet, View, FlatList, Text, Dimensions, ActivityIndicator, Button } from 'react-native';
 import React from 'react';
 import { default as MovieList } from '../../components/MovieList.js';
+import { Input } from 'react-native-elements';
+import Icon from 'react-native-vector-icons/Octicons';
+import ResultsList from './../../components/ResultsList.js';
 
 const styles = StyleSheet.create({
     container: {
+        paddingTop: 8,
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
@@ -15,8 +19,8 @@ const styles = StyleSheet.create({
         width: Dimensions.get("window").width - 30,
     },
     genreTitle: {
-        color: 'black',
-        backgroundColor: 'white',
+        color: 'white',
+        backgroundColor: '#660000',
         paddingLeft: 12,
         fontSize: 18,
         paddingTop: 10,
@@ -24,6 +28,18 @@ const styles = StyleSheet.create({
     },
     movieItem: {
         paddingHorizontal: 12,
+        backgroundColor: 'white',
+    },
+    activityIndicator: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center'
+    },
+    searchMovieInput: {
+        height: 50,
+        paddingLeft: 12,
+    },
+    searchRightIcon: {
         backgroundColor: 'white'
     }
 });
@@ -31,8 +47,11 @@ const styles = StyleSheet.create({
 export default ( {navigation} ) => {
     const [movies, setMovies] = React.useState([])
     const [genres, setGenres] = React.useState([])
-    const [loading, setLoading] = React.useState(true)
     const [loadingMovies, setLoadingMovies] = React.useState(true)
+    const [searchText, setSearchText] = React.useState('Godzilla')
+    const searchInput = React.createRef()
+
+    const [modalVisible, setModalVisible] = React.useState(false)
 
     const fetchGenres = async () => {
         try{
@@ -48,7 +67,7 @@ export default ( {navigation} ) => {
         try {
             if(loadingMovies == true){
                 let index = 1
-                let total_pages = 30
+                let total_pages = 2
 
                 let aux_movies = []
                 while(index <= total_pages){
@@ -67,28 +86,40 @@ export default ( {navigation} ) => {
 
     React.useEffect(() => {
         fetchGenres()
-        setLoading(false)
         fetchMovies()
-
     }, [loadingMovies])
 
     return(
         <View style={styles.container}>
-            {/* <Button title="Go to Detail" onPress={() => navigation.navigate("Detail")}/> */}
+            <Button title="Open modal" onPress={() => setModalVisible(true)} />
+            <View style={{backgroundColor: 'white', width: Dimensions.get("window").width - 30, height:55}}>
+                <Input
+                    value={searchText}
+                    onChangeText={(text) => setSearchText(text)}
+                    ref={searchInput}
+                    style={styles.searchMovieInput} 
+                    placeholder="Search for a movie"
+                    rightIcon={ <Icon name="search" size={20} onPress={() => searchText.length === 0 ? searchInput.current.focus() : setModalVisible(true)} style={styles.searchRightIcon}/>}
+                />
+            </View>
+
         {
-            loading === true ? <Text> Loading </Text> : 
+            modalVisible === true ? <ResultsList modalVisible={modalVisible} setModalVisible={setModalVisible} searchText={searchText}/> : null
+        }
+        
+        {
+            loadingMovies === true ? <ActivityIndicator style={styles.activityIndicator} animating={true} size="large" color="#0000ff"/> : 
             <FlatList
+                style={{paddingTop: 10}}
                 data={genres}
                 keyExtractor={(item) => item.id.toString()}
                 renderItem={({item}) => (<View style={styles.genreContainer}>
                                 <Text style={styles.genreTitle}>{ item.name }</Text>
-                                {
-                                    loadingMovies === true ? <Text style={{color: 'white', paddingHorizonta: 15}}> Loading Movies</Text>: <MovieList movies={movies} genreId={item.id} navigation={navigation}/>
-                                }
+                                <MovieList movies={movies} genreId={item.id} navigation={navigation}/>
                             </View>)
                 }
 
-            /> 
+            />
         }
         </View>
     );

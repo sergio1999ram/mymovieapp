@@ -1,7 +1,7 @@
 import React from 'react'
-import { View, StyleSheet } from 'react-native';
+import { View, StyleSheet, TouchableOpacity, Alert } from 'react-native';
 import { WebView } from 'react-native-webview';
-// import Youtube from 'react-native-youtube'
+import Icon from 'react-native-vector-icons/Ionicons';
 
 const styles = StyleSheet.create({
     container: {
@@ -12,17 +12,12 @@ const VideoPlayerScreen = ({ navigation }) => {
     const [video, setVideo] = React.useState(undefined)
     const movie = navigation.getParam("movie")
 
-    console.log(video)
-    console.log(movie)
-
     const fetchVideo = async () => {
         const response = await fetch(`https://youtube.googleapis.com/youtube/v3/search?part=snippet&maxResults=5&q=${movie.title}%20Official%20Trailer&key=AIzaSyDoKDLwMp0IX00ivfR2D3jsAbx2kPB37Jo`)
         const data = await response.json()
         setVideo(data.items[0])
-        console.log(data.items[0])
     }
 
-    console.log(movie)
     React.useEffect(() => {
         fetchVideo()
     }, [])
@@ -36,18 +31,7 @@ const VideoPlayerScreen = ({ navigation }) => {
                                         source={{uri: `https://www.youtube.com/embed/${video.id.videoId}`}}
                                     /> : null
             }
-            {/* <YouTube
-                    apiKey={'AIzaSyDoKDLwMp0IX00ivfR2D3jsAbx2kPB37Jo'}
-                    videoId={movie.id}   
-                    play         
-                    fullscreen   
-                    loop={false}            
-                    onReady={e => this.setState({ isReady: true })}
-                    onChangeState={e => this.setState({ status: e.state })}
-                    onChangeQuality={e => this.setState({ quality: e.quality })}
-                    onError={e => this.setState({ error: e.error })}
-                    style={{ alignSelf: 'stretch', height: 300 }}
-                />*/}
+
         </View>
     );
 }
@@ -60,6 +44,19 @@ VideoPlayerScreen.navigationOptions = ({ navigation }) => {
         },
         headerStyle: {
             backgroundColor: 'black'
+        },
+        headerLeft: () => {
+            return (
+                // <Button title="Go Back" onPress={() => navigation.goBack()}/>
+                <TouchableOpacity onPress={() => navigation.goBack()} onLongPress={() => Alert.alert("Go back to the movie list")}>
+                    <Icon 
+                        style={{paddingLeft: 12}}
+                        name="arrow-back"
+                        size={30}
+                        color="white"
+                    />
+                </TouchableOpacity>
+            );
         }
     }
 };
