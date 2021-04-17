@@ -3,7 +3,6 @@ import React from 'react';
 import { default as MovieList } from '../../components/MovieList.js';
 import { Input } from 'react-native-elements';
 import Icon from 'react-native-vector-icons/Octicons';
-import ResultsList from './../../components/ResultsList.js';
 
 const styles = StyleSheet.create({
     container: {
@@ -35,12 +34,24 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center'
     },
+    loadingContainer: {
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center'
+    },
     searchMovieInput: {
         height: 50,
         paddingLeft: 12,
     },
     searchRightIcon: {
         backgroundColor: 'white'
+    },
+    inputContainer: {
+        backgroundColor: 'white', 
+        position: 'absolute',
+        top: 5
+        // width: Dimensions.get("window").width - 30, 
+        // height:55,
     }
 });
 
@@ -48,10 +59,9 @@ export default ( {navigation} ) => {
     const [movies, setMovies] = React.useState([])
     const [genres, setGenres] = React.useState([])
     const [loadingMovies, setLoadingMovies] = React.useState(true)
-    const [searchText, setSearchText] = React.useState('Godzilla')
+    const [searchText, setSearchText] = React.useState('')
     const searchInput = React.createRef()
 
-    const [modalVisible, setModalVisible] = React.useState(false)
 
     const fetchGenres = async () => {
         try{
@@ -91,35 +101,34 @@ export default ( {navigation} ) => {
 
     return(
         <View style={styles.container}>
-            <Button title="Open modal" onPress={() => setModalVisible(true)} />
-            <View style={{backgroundColor: 'white', width: Dimensions.get("window").width - 30, height:55}}>
+            <View style={styles.inputContainer}>
                 <Input
                     value={searchText}
                     onChangeText={(text) => setSearchText(text)}
                     ref={searchInput}
                     style={styles.searchMovieInput} 
                     placeholder="Search for a movie"
-                    rightIcon={ <Icon name="search" size={20} onPress={() => searchText.length === 0 ? searchInput.current.focus() : setModalVisible(true)} style={styles.searchRightIcon}/>}
+                        rightIcon={ <Icon name="search" size={20} onPress={() => searchText.length > 0 ? navigation.navigate('ResultsScreen', {query: searchText}) : null } style={styles.searchRightIcon}/>}
                 />
             </View>
-
-        {
-            modalVisible === true ? <ResultsList modalVisible={modalVisible} setModalVisible={setModalVisible} searchText={searchText}/> : null
-        }
         
         {
-            loadingMovies === true ? <ActivityIndicator style={styles.activityIndicator} animating={true} size="large" color="#0000ff"/> : 
-            <FlatList
-                style={{paddingTop: 10}}
-                data={genres}
-                keyExtractor={(item) => item.id.toString()}
-                renderItem={({item}) => (<View style={styles.genreContainer}>
-                                <Text style={styles.genreTitle}>{ item.name }</Text>
-                                <MovieList movies={movies} genreId={item.id} navigation={navigation}/>
-                            </View>)
-                }
+            loadingMovies === true ? <View style={styles.loadingContainer}>
+                                        <Text style={styles.loadingText}>Searching for movies...</Text> 
+                                        <ActivityIndicator style={styles.activityIndicator} animating={true} size="large" color="#0000ff"/>
+                                    </View> : 
+                                    <FlatList
+                                        style={{marginTop: 70}}
+                                        data={genres}
+                                        keyExtractor={(item) => item.id.toString()}
+                                        renderItem={({item}) => (<View style={styles.genreContainer}>
+                                                        <Text style={styles.genreTitle}>{ item.name }</Text>
+                                                        {/* <MovieList movies={movies} genreId={item.id} navigation={navigation}/> */}
+                                                        <MovieList genre={item} navigation={navigation} />
+                                                    </View>)
+                                        }
 
-            />
+                                    />
         }
         </View>
     );
